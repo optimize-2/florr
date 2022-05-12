@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+
+    <info organisation="florr-recode" module="florr-recode"/>
+
+    <configurations defaultconfmapping="default">
+        <conf name="default"/>
+        <conf name="javadoc"/>
+        <conf name="sources"/>
+    </configurations>
+
+    <dependencies>
+
+        <dependency org="org.lwjgl" name="lwjgl" rev="${lwjgl.version}">
+            <artifact name="lwjgl" type="jar"/>
+            <artifact name="lwjgl" type="jar" m:classifier="${lwjgl.natives}"/>
+        </dependency>
+        <dependency org="org.lwjgl" name="lwjgl" rev="${lwjgl.version}" conf="javadoc;sources"/>
+
+        <dependency org="org.lwjgl" name="lwjgl-glfw" rev="${lwjgl.version}">
+            <artifact name="lwjgl-glfw" type="jar"/>
+            <artifact name="lwjgl-glfw" type="jar" m:classifier="${lwjgl.natives}"/>
+        </dependency>
+        <dependency org="org.lwjgl" name="lwjgl-glfw" rev="${lwjgl.version}" conf="javadoc;sources"/>
+
+        <dependency org="org.lwjgl" name="lwjgl-opengl" rev="${lwjgl.version}">
+            <artifact name="lwjgl-opengl" type="jar"/>
+            <artifact name="lwjgl-opengl" type="jar" m:classifier="${lwjgl.natives}"/>
+        </dependency>
+        <dependency org="org.lwjgl" name="lwjgl-opengl" rev="${lwjgl.version}" conf="javadoc;sources"/>
+
+        <dependency org="org.lwjgl" name="lwjgl-stb" rev="${lwjgl.version}">
+            <artifact name="lwjgl-stb" type="jar"/>
+            <artifact name="lwjgl-stb" type="jar" m:classifier="${lwjgl.natives}"/>
+        </dependency>
+        <dependency org="org.lwjgl" name="lwjgl-stb" rev="${lwjgl.version}" conf="javadoc;sources"/>
+
+    </dependencies>
+
+</ivy-module>

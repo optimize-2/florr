@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="florr-recode" default="run" basedir=".">
+
+    <presetdef name="javac">
+        <javac includeantruntime="false"/>
+    </presetdef>
+
+    <!-- Properties -->
+    <property name="src.dir" value="src"/>
+    <property name="resources.dir" value="resources"/>
+    <property name="lib.dir" value="lib"/>
+
+    <property name="build.dir" value="build"/>
+
+    <property name="dist.dir" value="dist"/>
+    <property name="dist.lib" value="${dist.dir}/${lib.dir}"/>
+    <property name="dist.resources" value="${dist.dir}/${resources.dir}"/>
+
+    <property name="main.class" value="cn.optimize_2.client.Client"/>
+
+    <property name="debug.port" value="5005"/>
+
+    <!-- Classpath -->
+    <path id="lwjgl.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+            <exclude name="**/*javadoc*"/>
+            <exclude name="**/*sources*"/>
+        </fileset>
+    </path>
+
+    <!-- Conditions -->
+    <condition property="lib.exists">
+        <available file="${lib.dir}" type="dir"/>
+    </condition>
+
+    <condition property="lwjgl.natives" value="natives-windows">
+        <os family="Windows"/>
+    </condition>
+
+    <condition property="lwjgl.natives" value="natives-linux">
+        <os name="Linux"/>
+    </condition>
+
+    <condition property="lwjgl.natives" value="natives-macos">
+        <os name="Mac OS X"/>
+    </condition>
+
+    <!-- Public Targets -->
+    <target name="init" depends="-check-lib"
+            description="This target initializes the compilation.\n
+                         If necessary the libraries will get dowloaded into the folder ${lib.dir} via ivy.">
+        <mkdir dir="${build.dir}"/>
+    </target>
+
+    <target name="compile" depends="init"
+            description="This target compiles the sources to the folder ${build.dir}.">
+        <javac srcdir="${src.dir}" destdir="${build.dir}">
+            <classpath refid="lwjgl.classpath"/>
+        </javac>
+    </target>
+
+    <target name="run" depends="compile"
+            description="This target runs the application.">
+        <java classname="${main.class}" fork="true">
+            <classpath>
+                <pathelement location="${build.dir}"/>
+                <path refid="lwjgl.classpath"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="debug" depends="-compile-debug"
+            description="This target allows you to debug the application by attaching a debugger on port ${debug.port}.">
+        <java classname="${main.class}" fork="true">
+            <classpath>
+                <pathelement location="${build.dir}"/>
+                <path refid="lwjgl.classpath"/>
+            </classpath>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${debug.port}"/>
+        </java>
+    </target>
+
+    <target name="client" depends="compile"
+            description="This target will create a jar file for distribution into the folder ${dist.dir}.">
+        <mkdir dir="${dist.dir}"/>
+        <manifestclasspath property="manifest.classpath" jarfile="${dist.dir}/${ant.project.name}.jar">
+            <classpath refid="lwjgl.classpath"/>
+        </manifestclasspath>
+        <jar basedir="${build.dir}" destfile="${dist.dir}/${ant.project.name}.jar">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Class-Path" value="${manifest.classpath}"/>
+            </manifest>
+        </jar>
+        <copy todir="${dist.lib}">
+            <fileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+                <exclude name="**/*javadoc*"/>
+                <exclude name="**/*sources*"/>
+            </fileset>
+        </copy>
+        <copy todir="${dist.resources}">
+            <fileset dir="${resources.dir}"/>
+        </copy>
+    </target>
+
+    <target name="server" depends="compile"
+            description="This target will create a jar file for distribution into the folder ${dist.dir}.">
+        <mkdir dir="${dist.dir}"/>
+        <manifestclasspath property="manifest.classpath" jarfile="${dist.dir}/${ant.project.name}.jar">
+            <classpath refid="lwjgl.classpath"/>
+        </manifestclasspath>
+        <jar basedir="${build.dir}" destfile="${dist.dir}/${ant.project.name}.jar">
+            <manifest>
+                <attribute name="Main-Class" value="cn.optimize_2.server.Server"/>
+                <attribute name="Class-Path" value="${manifest.classpath}"/>
+            </manifest>
+        </jar>
+        <copy todir="${dist.lib}">
+            <fileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+                <exclude name="**/*javadoc*"/>
+                <exclude name="**/*sources*"/>
+            </fileset>
+        </copy>
+        <copy todir="${dist.resources}">
+            <fileset dir="${resources.dir}"/>
+        </copy>
+    </target>
+
+    <target name="clean"
+            description="This target will clean the project.\n
+                         The folder ${build.dir} and ${dist.dir} will get deleted.">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="update"
+            description="This target will download the libraries via ivy.">
+        <delete dir="${lib.dir}"/>
+        <antcall target="-retrieve"/>
+        <ivy:cleancache/>
+    </target>
+
+    <target name="help"
+            description="This target displays usage information.">
+        <echo message="For using this ant script you need to have Apache Ivy installed, you can get it here: http://ant.apache.org/ivy/"/>
+        <echo message="When first running the application the libraries will get downloaded."/>
+        <echo message="If you want to get a newer or older version of lwjgl simply change the 'lwjgl.version' property and call 'ant update'."/>
+        <echo message=""/>
+        <echo message="These are the three main targets:"/>
+        <echo message="'ant run' will run the application."/>
+        <echo message="'ant jar' will create a jar for distribution."/>
+        <echo message="'ant update' will update the libraries."/>
+        <echo message=""/>
+        <echo message="For a list of all targets call 'ant -projecthelp'."/>
+    </target>
+
+    <!-- Private Targets -->
+    <target name="-retrieve">
+        <ivy:retrieve conf="default,javadoc,sources" pattern="${lib.dir}/[artifact](-[classifier]).[ext]"/>
+    </target>
+
+    <target name="-compile-debug" depends="init">
+        <javac debug="true" srcdir="${src.dir}" destdir="${build.dir}">
+            <classpath refid="lwjgl.classpath"/>
+        </javac>
+    </target>
+
+    <target name="-check-lib" unless="lib.exists">
+        <antcall target="update"/>
+    </target>
+
+</project>

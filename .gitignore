@@ -1,0 +1,9 @@
+lib/
+native/
+build/
+dist/
+nbproject/
+.out/
+
+.idea/
+.vscode/
